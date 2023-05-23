@@ -1,0 +1,180 @@
+{% extends "course/base.html" %}
+{% load socialaccount %}
+{% block content %}
+
+  <section class="max-w-5xl mx-auto">
+    <div class="container h-full p-10">
+      <div
+          class="g-6 flex h-full flex-wrap items-center justify-center text-neutral-800 dark:text-neutral-200">
+        <div class="w-full">
+          <div
+              class="block rounded-lg bg-white shadow-lg dark:bg-neutral-800">
+            <div class="g-0 lg:flex lg:flex-wrap">
+              <!-- Left column container-->
+              <div class="px-4 md:px-0 lg:w-6/12">
+                <div class="md:mx-6 md:p-12">
+                  <!--Logo-->
+                  <div class="text-center">
+
+                    <h4 class="mb-1 mt-1 pb-1 text-xl font-semibold">
+                      Registration
+                    </h4>
+                  </div>
+
+                  <form action="" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <!--Username input-->
+                    <div class="relative mb-4">
+                      <label>
+                        <input type="text" name="username" class="block border border-grey-light w-full p-3 rounded mb-4"
+                               placeholder="Username">
+                      </label>
+                    </div>
+
+                    <!--Password input-->
+                    <div class="relative mb-4" >
+                      <label>
+                        <input type="password" name="password1"
+                               class="block border border-grey-light w-full p-3 rounded mb-4" placeholder="Password">
+                      </label>
+                    </div>
+                    <div class="relative mb-4" >
+                      <label>
+                        <input type="password" name="password2"
+                               class="block border border-grey-light w-full p-3 rounded mb-4"
+                               placeholder="Repeat password">
+                      </label>
+
+                    </div>
+                    <div class="flex items-center justify-center w-full">
+                      <label
+                          class="mb-3 flex flex-col items-center justify-center w-full h-34 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                          <svg aria-hidden="true" class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor"
+                               viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                          </svg>
+                          <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload</span>
+                            or drag and drop</p>
+                          <p class="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
+                        </div>
+                        <input type="file" name="image" class="hidden">
+                      </label>
+                    </div>
+
+                    {% if form.errors %}
+                      <div
+                          class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400">
+
+                        {% for field_errors in form.errors.values %}
+                          {% for error in field_errors %}
+                            <span class="font-medium">Error! </span> {{ error }} <br>
+                          {% endfor %}
+                        {% endfor %}
+                      </div>
+                    {% endif %}
+
+                    <!--Submit button-->
+                    <div class="mb-12 pb-1 pt-1 text-center">
+                      <button
+                          class="mb-3 inline-block w-full rounded px-6 pb-2 pt-2.5 text-xs font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_rgba(0,0,0,0.2)] transition duration-150 ease-in-out hover:shadow-[0_8px_9px_-4px_rgba(0,0,0,0.1),0_4px_18px_0_rgba(0,0,0,0.2)] focus:shadow-[0_8px_9px_-4px_rgba(0,0,0,0.1),0_4px_18px_0_rgba(0,0,0,0.2)] focus:outline-none focus:ring-0 active:shadow-[0_8px_9px_-4px_rgba(0,0,0,0.1),0_4px_18px_0_rgba(0,0,0,0.2)]"
+                          type="submit"
+                          data-te-ripple-init
+                          data-te-ripple-color="light"
+                          style="
+                        background: linear-gradient(to right, #06b6d4, #3b82f6, #b44593);
+                      ">
+                        Register
+                      </button>
+                      <div class="flex items-center space-x-4">
+                        <hr class="w-full border border-gray-300"/>
+                        <div class="font-semibold text-gray-400">OR</div>
+                        <hr class="w-full border border-gray-300"/>
+                      </div>
+                      <a href="{% provider_login_url 'google' %}?next=/">
+                      <button
+                          class="mt-3 inline-block w-full rounded px-6 pb-2 pt-2.5 text-xs font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_rgba(0,0,0,0.2)] transition duration-150 ease-in-out hover:shadow-[0_8px_9px_-4px_rgba(0,0,0,0.1),0_4px_18px_0_rgba(0,0,0,0.2)] focus:shadow-[0_8px_9px_-4px_rgba(0,0,0,0.1),0_4px_18px_0_rgba(0,0,0,0.2)] focus:outline-none focus:ring-0 active:shadow-[0_8px_9px_-4px_rgba(0,0,0,0.1),0_4px_18px_0_rgba(0,0,0,0.2)]"
+                          type="button"
+                          data-te-ripple-init
+                          data-te-ripple-color="light"
+                          style="
+                        background: linear-gradient(to right, #06b6d4, #3b82f6, #b44593);
+                      ">
+                        Google sign up
+                      </button>
+                        </a>
+
+                    </div>
+
+                    <!--Register button-->
+                    <div class="flex items-center justify-between pb-6">
+                      <p class="mb-0 mr-2">Already have an account?</p>
+                      <a href="{% url 'course:login' %}">
+                        <button
+                            type="button"
+                            class="inline-block rounded border-2 border-danger px-6 pb-[6px] pt-2 text-xs font-medium uppercase leading-normal text-danger transition duration-150 ease-in-out hover:border-danger-600 hover:bg-neutral-500 hover:bg-opacity-10 hover:text-danger-600 focus:border-danger-600 focus:text-danger-600 focus:outline-none focus:ring-0 active:border-danger-700 active:text-danger-700 dark:hover:bg-neutral-100 dark:hover:bg-opacity-10"
+                            data-te-ripple-init
+                            data-te-ripple-color="light">
+                          Login
+                        </button>
+                      </a>
+
+                    </div>
+
+
+                  </form>
+                  <script>
+                      const fileInput = document.querySelector('input[name="image"]');
+                      const uploadLabel = document.querySelector('.text-xs');
+                      let currentFileName = '';
+
+                      fileInput.addEventListener('change', () => {
+                          const fileName = fileInput.files[0].name;
+                          const fileType = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
+                          const validExtensions = ['svg', 'png', 'jpg', 'gif'];
+
+                          if (validExtensions.includes(fileType)) {
+                              if (fileName !== currentFileName) {
+                                  currentFileName = fileName;
+                                  uploadLabel.textContent = `SVG, PNG, JPG or GIF (MAX. 800x400px) (${fileName})`;
+                              }
+                          } else {
+                              uploadLabel.textContent = 'SVG, PNG, JPG or GIF (MAX. 800x400px) (invalid file type)';
+                          }
+                      });
+                  </script>
+                </div>
+              </div>
+
+              <!-- Right column container with background and description-->
+              <div
+                  class="flex items-center rounded-b-lg lg:w-6/12 lg:rounded-r-lg lg:rounded-bl-none"
+                  style="background: linear-gradient(to top, #06b6d4, #3b82f6, #b44593)">
+                <div class="px-4 py-6 text-white md:mx-6 md:p-12">
+                  <img
+                      class="mx-auto w-24 mb-20"
+                      src="https://flowbite.com/docs/images/logo.svg"
+                      alt="logo"/>
+                  <h4 class="mb-6 text-xl font-semibold">
+                    We are more than just a company
+                  </h4>
+                  <p class="text-sm">
+                    Lorem ipsum dolor sit amet, consectetur adipisicing
+                    elit, sed do eiusmod tempor incididunt ut labore et
+                    dolore magna aliqua. Ut enim ad minim veniam, quis
+                    nostrud exercitation ullamco laboris nisi ut aliquip ex
+                    ea commodo consequat.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+{% endblock %}
+

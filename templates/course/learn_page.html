@@ -1,0 +1,115 @@
+{% extends "course/base.html" %}
+{% load video_url %}
+{% load static %}
+{% block content %}
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=fetch"></script>
+  <script src="https://js.stripe.com/v3/"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.2.1/owl.carousel.js"></script>
+
+
+  <div class="w-full max-w-screen-lg mx-auto rounded-lg dark:border-gray-700 flex mt-5">
+    <div class="w-full lg:w-3/4 relative" style="padding-bottom: 56.25%;">
+      <div id="video-container" class="flex justify-center items-center absolute inset-0 w-full h-full">
+        <div role="status" id="loading-message">
+          <svg aria-hidden="true" class="w-8 h-8 ml-5 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+               viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                fill="currentColor"></path>
+            <path
+                d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                fill="currentFill"></path>
+          </svg>
+          <span class="sr-only">Loading...</span>
+        </div>
+
+        <iframe style="border-radius: 10px; display: none;" id="video-iframe"
+                src="{{ lectures.first.video | embed_youtube_video }}"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                class="absolute inset-0 w-full h-full"></iframe>
+      </div>
+    </div>
+    <div class="w-full lg:w-2/6 pl-6 lg:pl-8">
+      <div
+          class="bg-gradient-to-b from-indigo-500 to-indigo-700 p-4 rounded-lg shadow hover:shadow-xl mb-4 text-center">
+        <h2 class="text-lg font-bold mb-4">Курс</h2>
+        <ul class="list-none">
+          {% for lecture in lectures %}
+            <li class="mb-2">
+              <a href="{% url 'course:learn-page' pk=course_pk lecture_pk=lecture.pk %}">
+                <button
+                    class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl text-white font-bold py-2 px-4 rounded flex mx-auto text-center">
+                  <span class="text-center">{{ lecture.title }}</span>
+                  {% if  lecture in user.listened_lectures.all %}
+                    <img src="https://cdn-icons-png.flaticon.com/512/4682/4682662.png" alt="иконка"
+                         class="ml-2 h-5 w-5">
+                  {% elif  lecture in user.rejected_lectures.all %}
+                    <img src="https://cdn3.iconfinder.com/data/icons/security-2-1/512/cancel-512.png" alt="иконка"
+                         class="ml-2 h-5 w-5">
+                  {% elif  lecture in user.on_review_lectures.all %}
+                    <img src="https://www.pngkit.com/png/full/133-1333993_time-icon-waste.png" alt="иконка"
+                         class="ml-2 h-5 w-5">
+                  {% else %}
+                    <img src="https://cdn-icons-png.flaticon.com/512/262/262592.png" alt="иконка"
+                         class="ml-2 h-5 w-5">
+                  {% endif %}
+                </button>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <!-- Добавьте дополнительные ссылки, если необходимо -->
+  </div>
+  <div class="w-full max-w-screen-lg mx-auto mt-4">
+    <div
+        class="rounded-lg shadow hover:shadow-xl text-center bg-white">
+      <br>
+      <h2 class="text-lg font-bold mb-2 mt-2">Theory</h2>
+      <hr class="w-60 h-1 mx-auto bg-gray-100 border-0 rounded m-3 dark:bg-gray-700">
+      <p class="text-gray-500 dark:text-gray-400 mb-4">{{ lecture.0.text }}</p>
+      <h2 class="text-lg font-bold mb-2">Homework</h2>
+      <hr class="w-60 h-1 mx-auto bg-gray-100 border-0 rounded m-3 dark:bg-gray-700">
+      <p class="text-gray-500 dark:text-gray-400 mb-4">Your homework is on git , don`t forget to click the button after
+        sending the solution
+        <a class="font-medium text-blue-600 underline dark:text-blue-500 hover:no-underline"
+           href="{{ lecture.0.home_work }}">Your task</a>
+      </p>
+      <form method="post" action="{% url 'course:learn-page' pk=course_pk lecture_pk=lecture.0.pk %}">
+        {% csrf_token %}
+        {% if lecture.0 not in user.on_review_lectures.all and lecture.0 not in user.listened_lectures.all %}
+          <button type="submit"
+
+                  id="checkout-button"
+                  class="mb-4 text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 shadow-lg shadow-green-500/50 dark:shadow-lg dark:shadow-green-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">
+            Done
+          </button>
+          {% elif lecture.0 in user.listened_lectures.all %}
+                      <button type="button"
+                  class="mb-4 text-white bg-blue-400 dark:bg-blue-500 cursor-not-allowed font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                  disabled>Homework done
+          </button>
+        {% else %}
+          <button type="button"
+                  class="mb-4 text-white bg-blue-400 dark:bg-blue-500 cursor-not-allowed font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                  disabled>Homework sent
+          </button>
+
+        {% endif %}
+      </form>
+
+    </div>
+  </div>
+  <script src="{% static 'js/video_loading_effect.js' %}"></script>
+
+{% endblock %}

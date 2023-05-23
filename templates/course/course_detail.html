@@ -1,0 +1,350 @@
+{% extends "course/base.html" %}
+{% load video_url %}
+{% load static %}
+{% block content %}
+
+                    <script src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=fetch"></script>
+                      <script src="https://js.stripe.com/v3/"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.2.1/owl.carousel.js"></script>
+
+
+  <div class="w-full max-w-screen-lg mx-auto rounded-lg dark:border-gray-700 flex mt-5">
+    <div class="w-full lg:w-3/4 relative" style="padding-bottom: 56.25%;">
+      <div id="video-container" class="flex justify-center items-center absolute inset-0 w-full h-full">
+        <div role="status" id="loading-message">
+          <svg aria-hidden="true" class="w-8 h-8 ml-5 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+               viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                fill="currentColor"></path>
+            <path
+                d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                fill="currentFill"></path>
+          </svg>
+          <span class="sr-only">Loading...</span>
+        </div>
+
+        <iframe style="border-radius: 10px; display: none;" id="video-iframe"
+                src="{{ lectures.first.video | embed_youtube_video }}"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                class="absolute inset-0 w-full h-full"></iframe>
+      </div>
+    </div>
+    {% if course in user.course_paid.all %}
+      <div class="w-full lg:w-2/6 pl-6 lg:pl-8">
+        <div
+            class="bg-gradient-to-b from-indigo-500 to-indigo-700 p-4 rounded-lg shadow hover:shadow-xl mb-4 text-center">
+          <h2 class="text-lg font-bold mb-4">Курс</h2>
+          <ul class="list-none">
+            {% for lecture in lectures %}
+            <li class="mb-2">
+              <a href="{% url 'course:learn-page' pk=course.pk lecture_pk=lecture.pk %}">
+                <button
+                    class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl text-white font-bold py-2 px-4 rounded flex mx-auto text-center">
+                  <span class="text-center">{{ lecture.title }}</span>
+                  {% if  lecture in user.listened_lectures.all %}
+                    <img src="https://cdn-icons-png.flaticon.com/512/4682/4682662.png" alt="иконка"
+                         class="ml-2 h-5 w-5">
+                  {% elif  lecture in user.rejected_lectures.all %}
+                    <img src="https://cdn3.iconfinder.com/data/icons/security-2-1/512/cancel-512.png" alt="иконка"
+                         class="ml-2 h-5 w-5">
+                  {% elif  lecture in user.on_review_lectures.all %}
+                    <img src="https://www.pngkit.com/png/full/133-1333993_time-icon-waste.png" alt="иконка"
+                         class="ml-2 h-5 w-5">
+                  {% else %}
+                    <img src="https://cdn-icons-png.flaticon.com/512/262/262592.png" alt="иконка"
+                         class="ml-2 h-5 w-5">
+                  {% endif %}
+                </button>
+              </a>
+            </li>
+          {% endfor %}
+          </ul>
+        </div>
+      </div>
+    {% else %}
+      <div class="w-full lg:w-2/6 pl-6 lg:pl-8">
+        <div
+            class="flex flex-col p-6 mx-auto max-w-lg text-center text-gray-900 bg-gradient-to-b from-indigo-500  to-purple-900 rounded-lg xl:p-8 dark:bg-gray-800 dark:text-white">
+          <h3 class="text-3xl font-semibold">{{ course.title }}</h3>
+          <div class="flex justify-center items-baseline my-8">
+            <span class="mr-2 text-5xl font-extrabold">${{ course.price }}</span>
+            <span class="text-black-500 dark:text-gray-400">One time</span>
+          </div>
+          <!-- List -->
+          <ul role="list" class="mb-8 space-y-4 text-left">
+            <li class="flex items-center space-x-3">
+              <!-- Icon -->
+              <svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor"
+                   viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd"></path>
+              </svg>
+              <span>Individual configuration</span>
+            </li>
+            <li class="flex items-center space-x-3">
+              <!-- Icon -->
+              <svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor"
+                   viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd"></path>
+              </svg>
+              <span>No setup, or hidden fees</span>
+            </li>
+            <li class="flex items-center space-x-3">
+              <!-- Icon -->
+              <svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor"
+                   viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd"></path>
+              </svg>
+              <span>Team size: <span class="font-semibold">1 developer</span></span>
+            </li>
+            <li class="flex items-center space-x-3">
+              <!-- Icon -->
+              <svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor"
+                   viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd"></path>
+              </svg>
+              <span>Premium support: <span class="font-semibold">6 months</span></span>
+            </li>
+            <li class="flex items-center space-x-3">
+              <!-- Icon -->
+              <svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor"
+                   viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd"></path>
+              </svg>
+              <span>Free updates: <span class="font-semibold">6 months</span></span>
+            </li>
+          </ul>
+                      <button type="button"
+                  id="checkout-button"
+                  class="text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 shadow-lg shadow-green-500/50 dark:shadow-lg dark:shadow-green-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">
+            Buy
+          </button>
+
+
+        </div>
+      </div>
+
+    {% endif %}
+    <!-- Добавьте дополнительные ссылки, если необходимо -->
+  </div>
+  {% csrf_token %}
+  <script type="text/javascript">
+      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      var stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}");
+      var checkoutButton = document.getElementById("checkout-button");
+      checkoutButton.addEventListener("click", function () {
+          fetch("{% url 'course:detail-page' course.id %}", {
+              method: "POST",
+              headers: {
+                  'X-CSRFToken': csrftoken
+              }
+          })
+              .then(function (response) {
+                  return response.json();
+              })
+              .then(function (session) {
+                  return stripe.redirectToCheckout({sessionId: session.id});
+              })
+              .then(function (result) {
+                  if (result.error) {
+                      alert(result.error.message);
+                  }
+              })
+              .catch(function (error) {
+                  console.error("Error:", error);
+              });
+      });
+  </script>
+
+  <!-- КОММЕНТАРИИ -->
+
+  <div class="container rounded w-full max-w-screen-lg mx-auto">
+    <div class="owl-carousel owl-theme mt-4">
+      {% for comment in comments %}
+        <div class="owl-item flex">
+          <div
+              class="max-w-30 w-80 block rounded-lg bg-white shadow-lg dark:bg-neutral-700 dark:shadow-black/30 flex-shrink-0">
+            <div class="h-28 w-80 overflow-hidden rounded-t-lg" style="background: linear-gradient(to right, #06b6d4, #3b82f6, #b44593);"></div>
+            <div
+                class="mx-auto -mt-12 w-24 overflow-hidden rounded-full border-2 border-white bg-white dark:border-neutral-800 dark:bg-neutral-800">
+              <img src="{{ comment.sender.image.url }}"/>
+            </div>
+            <div class="p-6 flex flex-col justify-between max-w-sm">
+              <h4 class="mb-4 text-2xl font-semibold">{{ comment.sender }}</h4>
+              <hr/>
+              <p class="font-normal tracking-tight dark:text-gray-900 whitespace-normal break-words">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="inline-block h-7 w-7 pr-2"
+                     viewBox="0 0 24 24">
+                  <path
+                      d="M13 14.725c0-5.141 3.892-10.519 10-11.725l.984 2.126c-2.215.835-4.163 3.742-4.38 5.746 2.491.392 4.396 2.547 4.396 5.149 0 3.182-2.584 4.979-5.199 4.979-3.015 0-5.801-2.305-5.801-6.275zm-13 0c0-5.141 3.892-10.519 10-11.725l.984 2.126c-2.215.835-4.163 3.742-4.38 5.746 2.491.392 4.396 2.547 4.396 5.149 0 3.182-2.584 4.979-5.199 4.979-3.015 0-5.801-2.305-5.801-6.275z"></path>
+                </svg>
+                {{ comment.content|truncatechars:100 }}
+              </p>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <script src="{% static 'js/slider_config.js' %}"></script>
+  <div id="error" class="w-full max-w-screen-lg mx-auto" hidden>
+    <div id="alert-2" class="flex p-4 mb-4 text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
+         role="alert">
+      <svg aria-hidden="true" class="flex-shrink-0 w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+           xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+              clip-rule="evenodd">
+
+        </path>
+      </svg>
+      <span class="sr-only">Info</span>
+      <div class="ml-3 text-sm font-medium">
+        You forgot to leave your rating . Please select star from 1 to 5
+      </div>
+      <button type="button"
+              class="ml-auto -mx-1.5 -my-1.5 bg-red-50 text-red-500 rounded-lg focus:ring-2 focus:ring-red-400 p-1.5 hover:bg-red-200 inline-flex h-8 w-8 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-gray-700"
+              data-dismiss-target="#alert-2" aria-label="Close">
+        <span class="sr-only">Close</span>
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clip-rule="evenodd"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="success" class="w-full max-w-screen-lg mx-auto" hidden>
+    <div id="alert-3" class="flex p-4 mb-4 text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400"
+         role="alert">
+      <svg aria-hidden="true" class="flex-shrink-0 w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+           xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+              clip-rule="evenodd"></path>
+      </svg>
+      <span class="sr-only">Info</span>
+      <div class="ml-3 text-sm font-medium">
+        Thanks for your comment!
+      </div>
+      <button type="button"
+              class="ml-auto -mx-1.5 -my-1.5 bg-green-50 text-green-500 rounded-lg focus:ring-2 focus:ring-green-400 p-1.5 hover:bg-green-200 inline-flex h-8 w-8 dark:bg-gray-800 dark:text-green-400 dark:hover:bg-gray-700"
+              data-dismiss-target="#alert-3" aria-label="Close">
+        <span class="sr-only">Close</span>
+        <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+             xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clip-rule="evenodd"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <form id="comment-form">
+    {% csrf_token %}
+    <input type="hidden" name="course_id" value="{{ course.pk }}">
+    <div
+        class="w-full max-w-screen-lg mx-auto mt-4 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+      <div class="flex items-center justify-between px-3 py-2 border-b dark:border-gray-600">
+
+        <div class="flex flex-wrap items-center divide-gray-200 sm:divide-x dark:divide-gray-600">
+          <div class="flex items-center space-x-1 sm:pr-4">
+            <p>Leave your rating here</p>
+          </div>
+          <div class="flex flex-wrap items-center space-x-1 sm:pl-4">
+            <div class="rate">
+              <input type="radio" id="star5" name="rate" value="5"/>
+              <label for="star5" tabindex="-1"></label>
+              <input type="radio" id="star4" name="rate" value="4"/>
+              <label for="star4" title="text"></label>
+              <input type="radio" id="star3" name="rate" value="3"/>
+              <label for="star3" title="text"></label>
+              <input type="radio" id="star2" name="rate" value="2"/>
+              <label for="star2" title="text"></label>
+              <input type="radio" id="star1" name="rate" value="1"/>
+              <label for="star1" title="text"></label>
+            </div>
+          </div>
+        </div>
+        <button type="button" data-tooltip-target="tooltip-fullscreen"
+                class="p-2 text-gray-500 rounded cursor-pointer sm:ml-auto hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600">
+          <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+               xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd"
+                  d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z"
+                  clip-rule="evenodd"></path>
+          </svg>
+          <span class="sr-only">Full screen</span>
+        </button>
+        <div id="tooltip-fullscreen" role="tooltip"
+             class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+          Show full screen
+          <div class="tooltip-arrow" data-popper-arrow></div>
+        </div>
+      </div>
+      <div class="px-4 py-2 bg-white rounded-b-lg dark:bg-gray-800">
+        <label for="comment-text" class="sr-only">Publish post</label>
+        <textarea id="comment-text" rows="8"
+                  name="comment-text"
+                  class="block w-full px-0 text-sm text-gray-800 bg-white border-0 dark:bg-gray-800 focus:ring-0 dark:text-white dark:placeholder-gray-400"
+                  placeholder="Write an article..." required></textarea>
+      </div>
+      <button type="submit"
+              class="m-2 inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 hover:bg-blue-800">
+        Publish post
+      </button>
+    </div>
+
+  </form>
+  <script>
+      $(document).ready(function () {
+          $('#comment-form').submit(function (event) {
+              event.preventDefault(); // предотвращаем стандартное поведение отправки формы
+              var rating = $('input[name="rate"]:checked').val();
+
+              if (rating == null) { // если не выбрана оценка, вызываем ошибку
+                  $('#error').show(); // показываем блок с ошибкой
+                  return;
+              }
+
+              // отправляем данные формы на сервер
+              $.ajax({
+                  type: 'POST',
+                  url: '{% url "course:my_ajax_view" %}',
+                  data: $(this).serialize(),
+                  success: function (response) {
+                      $('#success').show();
+                      $('#comment-form').trigger("reset"); // перезагрузка страницы
+                  },
+                  error: function (xhr, status, error) {
+                      console.log('Error:', error);
+                  }
+              });
+          });
+      });
+  </script>
+  <script src="{% static 'js/ajax_comment_form.js' %}"></script>
+  <script src="{% static 'js/video_loading_effect.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'css/arrows.css' %}"/>
+
+{% endblock %}

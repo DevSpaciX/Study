@@ -1,0 +1,24 @@
+
+{% if courses.has_previous or courses.has_next %}
+<ul class="flex justify-center mt-4">
+    {% if courses.has_previous %}
+    <li class="mx-1 px-3 py-2 bg-gray-200 text-gray-700 hover:bg-gray-700 hover:text-gray-200 rounded-lg">
+        <a class="flex items-center font-bold" href="?page={{ courses.previous_page_number }}">
+            <span class="mx-1">previous</span>
+        </a>
+    </li>
+    {% endif %}
+    {% for num in courses.paginator.page_range %}
+    <li class="mx-1 px-3 py-2 bg-gray-200 {% if num == courses.number %}text-gray-200 bg-gray-700{% else %}text-gray-700 hover:bg-gray-700 hover:text-gray-200{% endif %} rounded-lg">
+        <a class="font-bold" href="?page={{ num }}">{{ num }}</a>
+    </li>
+    {% endfor %}
+    {% if courses.has_next %}
+    <li class="mx-1 px-3 py-2 bg-gray-200 text-gray-700 hover:bg-gray-700 hover:text-gray-200 rounded-lg">
+        <a class="flex items-center font-bold" href="?page={{ courses.next_page_number }}">
+            <span class="mx-1">Next</span>
+        </a>
+    </li>
+    {% endif %}
+</ul>
+{% endif %}
