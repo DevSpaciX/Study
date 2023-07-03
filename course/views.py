@@ -1,3 +1,5 @@
+import json
+
 import stripe
 from django import forms
 from django.contrib.auth import login, authenticate, get_user_model
@@ -7,32 +9,26 @@ from django.forms import TextInput, Select
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
-from django.views.decorators.csrf import csrf_exempt
 from django_filters import rest_framework as filters, CharFilter
 from django.views import generic, View
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 
+from course.bot import run_bot
 from course.forms import SignUpForm, LoginForm
-from course.models import Course, Category, Lecture, Comment, User, Payment, Homework
+from course.models import Course, Category, Lecture, Comment, User, Payment, Homework, Test
 from course_core import settings
+# from course.bot import run_bot
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 class CourseFilter(filters.FilterSet):
-    price = filters.RangeFilter(field_name="price")
-    popular_first = filters.BooleanFilter(
-        widget=forms.CheckboxInput(
-            attrs={
-                "class": "sr-only peer",
-            }
-        ),
-        method="filter_popular_first",
-    )
     category_name = CharFilter(
         field_name="category__title",
         lookup_expr="icontains",
         widget=Select(
-            choices= [("", "All")] + [(category.title, category.title) for category in Category.objects.all()],
+            choices=[("", "All")] + [(category.title, category.title) for category in Category.objects.all()],
             attrs={
                 "class": "w-full border border-gray-400 py-2 px-3 rounded-md shadow-sm"
             },
@@ -45,9 +41,9 @@ class CourseFilter(filters.FilterSet):
         widget=TextInput(
             attrs={
                 "class": "block w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 "
-                "rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 "
-                "dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 "
-                "dark:focus:border-blue-500",
+                         "rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 "
+                         "dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 "
+                         "dark:focus:border-blue-500",
                 "placeholder": "Search",
             }
         ),
@@ -72,7 +68,7 @@ class CourseFilter(filters.FilterSet):
 
     class Meta:
         model = Course
-        fields = ["category_name", "price", "popular_first"]
+        fields = ["category_name"]
 
 
 class ListOfCourses(generic.ListView):
@@ -83,7 +79,11 @@ class ListOfCourses(generic.ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["filter"] = CourseFilter(self.request.GET)
-        paginator = Paginator(self.object_list, self.paginate_by)
+
+        # Установка порядка сортировки для object_list
+        object_list = self.model.objects.order_by('rating')
+
+        paginator = Paginator(object_list, self.paginate_by)
         page = self.request.GET.get('page')
         courses = paginator.get_page(page)
         context['courses'] = courses
@@ -91,7 +91,7 @@ class ListOfCourses(generic.ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        filter = CourseFilter(self.request.GET, queryset=queryset)
+        filter = CourseFilter(self.request.GET, queryset=queryset.order_by('rating'))
         return filter.qs.distinct()
 
 
@@ -109,32 +109,33 @@ class DetailCourses(LoginRequiredMixin, generic.DetailView):
 
         return context
 
-    @csrf_exempt
-    def post(self, request, *args, **kwargs):
-        user = request.user.pk
-        product_id = self.kwargs["pk"]
-        product = Course.objects.get(id=product_id)
-        YOUR_DOMAIN = "https://crm29507.dzencode.net/"
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
-            line_items=[
-                {
-                    "price_data": {
-                        "currency": "usd",
-                        "unit_amount": product.price * 100,
-                        "product_data": {
-                            "name": product.title,
-                        },
-                    },
-                    "quantity": 1,
-                },
-            ],
-            metadata={"product_id": product.id, "user_id": user},
-            mode="payment",
-            success_url=YOUR_DOMAIN + f"success/?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=YOUR_DOMAIN + "/cancel/",
-        )
-        return JsonResponse({"id": checkout_session.id})
+    # @csrf_exempt
+    # def post(self, request, *args, **kwargs):
+    #     user = request.user.pk
+    #     product_id = self.kwargs["pk"]
+    #     product = Course.objects.get(id=product_id)
+    #     YOUR_DOMAIN = "https://crm29507.dzencode.net/"
+    #     checkout_session = stripe.checkout.Session.create(
+    #         payment_method_types=["card"],
+    #         line_items=[
+    #             {
+    #                 "price_data": {
+    #                     "currency": "usd",
+    #                     "unit_amount": product.price * 100,
+    #                     "product_data": {
+    #                         "name": product.title,
+    #                     },
+    #                 },
+    #                 "quantity": 1,
+    #             },
+    #         ],
+    #         metadata={"product_id": product.id, "user_id": user},
+    #         mode="payment",
+    #         success_url=YOUR_DOMAIN + f"success/?session_id={{CHECKOUT_SESSION_ID}}",
+    #         cancel_url=YOUR_DOMAIN + "/cancel/",
+    #     )
+    #     return JsonResponse({"id": checkout_session.id})
+
 
 def success(request):
     session_id = request.GET.get('session_id')
@@ -204,20 +205,23 @@ def profile(request, slug):
     profile = get_object_or_404(User, username=slug)
     completed_lectures = {}  # словарь для хранения количества пройденных лекций
     all_done_lectures = 0
+    all_tests = 0
 
-    for course in profile.course_paid.all():
+    for course in Course.objects.all():
         done_lectures = 0
         for lecture in course.lecture.all():
             if lecture in profile.listened_lectures.all():
                 done_lectures += 1
                 all_done_lectures += 1
+            for test in lecture.test_set.all():
+                all_tests += 1
 
-        all_lectures = course.lecture.all().count()
+        all_lectures = course.lecture.all().count() + all_tests
         completed_lectures[course.title] = (
             round(done_lectures / all_lectures * 100)
             if done_lectures > 0
             else 0
-                )
+        )
 
     context = {
         "profile": profile,
@@ -297,8 +301,11 @@ class Homeworks(generic.ListView):
         user = get_object_or_404(User, pk=request.POST.get("student_pk"))
         homework = get_object_or_404(Homework, pk=request.POST.get("homework_pk"))
         lecture = get_object_or_404(Lecture, id=request.POST.get("lecture_pk"))
+        print(lecture)
         action = request.POST.get("action")
+        print(action)
         if action == "accept":
+            print('OK')
             if lecture in user.rejected_lectures.all():
                 user.rejected_lectures.remove(lecture)
             if lecture in user.on_review_lectures.all():
@@ -306,9 +313,10 @@ class Homeworks(generic.ListView):
             user.listened_lectures.add(lecture)
 
         if action == "reject":
+            print('NOT')
             if (
-                lecture in user.on_review_lectures.all()
-                and lecture not in user.rejected_lectures.all()
+                    lecture in user.on_review_lectures.all()
+                    and lecture not in user.rejected_lectures.all()
             ):
                 user.on_review_lectures.remove(lecture)
                 user.rejected_lectures.add(lecture)
@@ -318,3 +326,30 @@ class Homeworks(generic.ListView):
         return JsonResponse(
             {"status": "success"}, status=200
         )
+
+
+def quiz_view(request, pk):
+    course = Test.objects.get(pk=pk).questions.all()  # Получение данных из модели Course
+    quiz_array = []
+
+    for i, item in enumerate(course):
+        question = {
+            "id": str(i),
+            "question": item.question_text,
+            "options": [item.option1, item.option2, item.option3, item.option4],
+            "correct": item.correct_option
+        }
+        quiz_array.append(question)
+
+    context = {
+        "quiz_array_json": json.dumps(quiz_array)  # Преобразование массива в JSON-строку
+    }
+
+    return render(request, 'course/quiz_template.html', context)
+
+
+# Django view для обработки запросов от Telegram
+@csrf_exempt
+def telegram_webhook(request):
+    run_bot()
+    return HttpResponse()

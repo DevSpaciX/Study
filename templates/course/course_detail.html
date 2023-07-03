@@ -14,7 +14,7 @@
 
 
   <div class="w-full max-w-screen-lg mx-auto rounded-lg dark:border-gray-700 flex mt-5">
-    <div class="w-full lg:w-3/4 relative" style="padding-bottom: 56.25%;">
+    <div class="w-full relative" style="padding-bottom: 56.25%;">
       <div id="video-container" class="flex justify-center items-center absolute inset-0 w-full h-full">
         <div role="status" id="loading-message">
           <svg aria-hidden="true" class="w-8 h-8 ml-5 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
@@ -37,111 +37,37 @@
                 class="absolute inset-0 w-full h-full"></iframe>
       </div>
     </div>
-    {% if course in user.course_paid.all %}
-      <div class="w-full lg:w-2/6 pl-6 lg:pl-8">
-        <div
-            class="bg-gradient-to-b from-indigo-500 to-indigo-700 p-4 rounded-lg shadow hover:shadow-xl mb-4 text-center">
-          <h2 class="text-lg font-bold mb-4">Курс</h2>
-          <ul class="list-none">
-            {% for lecture in lectures %}
-            <li class="mb-2">
-              <a href="{% url 'course:learn-page' pk=course.pk lecture_pk=lecture.pk %}">
-                <button
-                    class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl text-white font-bold py-2 px-4 rounded flex mx-auto text-center">
-                  <span class="text-center">{{ lecture.title }}</span>
-                  {% if  lecture in user.listened_lectures.all %}
-                    <img src="https://cdn-icons-png.flaticon.com/512/4682/4682662.png" alt="иконка"
-                         class="ml-2 h-5 w-5">
-                  {% elif  lecture in user.rejected_lectures.all %}
-                    <img src="https://cdn3.iconfinder.com/data/icons/security-2-1/512/cancel-512.png" alt="иконка"
-                         class="ml-2 h-5 w-5">
-                  {% elif  lecture in user.on_review_lectures.all %}
-                    <img src="https://www.pngkit.com/png/full/133-1333993_time-icon-waste.png" alt="иконка"
-                         class="ml-2 h-5 w-5">
-                  {% else %}
-                    <img src="https://cdn-icons-png.flaticon.com/512/262/262592.png" alt="иконка"
-                         class="ml-2 h-5 w-5">
-                  {% endif %}
-                </button>
-              </a>
-            </li>
-          {% endfor %}
-          </ul>
-        </div>
-      </div>
-    {% else %}
-      <div class="w-full lg:w-2/6 pl-6 lg:pl-8">
-        <div
-            class="flex flex-col p-6 mx-auto max-w-lg text-center text-gray-900 bg-gradient-to-b from-indigo-500  to-purple-900 rounded-lg xl:p-8 dark:bg-gray-800 dark:text-white">
-          <h3 class="text-3xl font-semibold">{{ course.title }}</h3>
-          <div class="flex justify-center items-baseline my-8">
-            <span class="mr-2 text-5xl font-extrabold">${{ course.price }}</span>
-            <span class="text-black-500 dark:text-gray-400">One time</span>
-          </div>
-          <!-- List -->
-          <ul role="list" class="mb-8 space-y-4 text-left">
-            <li class="flex items-center space-x-3">
-              <!-- Icon -->
-              <svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor"
-                   viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clip-rule="evenodd"></path>
-              </svg>
-              <span>Individual configuration</span>
-            </li>
-            <li class="flex items-center space-x-3">
-              <!-- Icon -->
-              <svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor"
-                   viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clip-rule="evenodd"></path>
-              </svg>
-              <span>No setup, or hidden fees</span>
-            </li>
-            <li class="flex items-center space-x-3">
-              <!-- Icon -->
-              <svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor"
-                   viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clip-rule="evenodd"></path>
-              </svg>
-              <span>Team size: <span class="font-semibold">1 developer</span></span>
-            </li>
-            <li class="flex items-center space-x-3">
-              <!-- Icon -->
-              <svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor"
-                   viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clip-rule="evenodd"></path>
-              </svg>
-              <span>Premium support: <span class="font-semibold">6 months</span></span>
-            </li>
-            <li class="flex items-center space-x-3">
-              <!-- Icon -->
-              <svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor"
-                   viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clip-rule="evenodd"></path>
-              </svg>
-              <span>Free updates: <span class="font-semibold">6 months</span></span>
-            </li>
-          </ul>
-                      <button type="button"
-                  id="checkout-button"
-                  class="text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 shadow-lg shadow-green-500/50 dark:shadow-lg dark:shadow-green-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">
-            Buy
-          </button>
-
-
-        </div>
-      </div>
-
-    {% endif %}
+{#      <div class="w-full lg:w-2/6 pl-6 lg:pl-8">#}
+{#        <div#}
+{#            class="bg-gradient-to-b from-indigo-500 to-indigo-700 p-4 rounded-lg shadow hover:shadow-xl mb-4 text-center">#}
+{#          <h2 class="text-lg font-bold mb-4">Курс</h2>#}
+{#          <ul class="list-none">#}
+{#            {% for lecture in lectures %}#}
+{#            <li class="mb-2">#}
+{#              <a href="{% url 'course:learn-page' pk=course.pk lecture_pk=lecture.pk %}">#}
+{#                <button#}
+{#                    class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl text-white font-bold py-2 px-4 rounded flex mx-auto text-center">#}
+{#                  <span class="text-center">{{ lecture.title }}</span>#}
+{#                  {% if  lecture in user.listened_lectures.all %}#}
+{#                    <img src="https://cdn-icons-png.flaticon.com/512/4682/4682662.png" alt="иконка"#}
+{#                         class="ml-2 h-5 w-5">#}
+{#                  {% elif  lecture in user.rejected_lectures.all %}#}
+{#                    <img src="https://cdn3.iconfinder.com/data/icons/security-2-1/512/cancel-512.png" alt="иконка"#}
+{#                         class="ml-2 h-5 w-5">#}
+{#                  {% elif  lecture in user.on_review_lectures.all %}#}
+{#                    <img src="https://www.pngkit.com/png/full/133-1333993_time-icon-waste.png" alt="иконка"#}
+{#                         class="ml-2 h-5 w-5">#}
+{#                  {% else %}#}
+{#                    <img src="https://cdn-icons-png.flaticon.com/512/262/262592.png" alt="иконка"#}
+{#                         class="ml-2 h-5 w-5">#}
+{#                  {% endif %}#}
+{#                </button>#}
+{#              </a>#}
+{#            </li>#}
+{#          {% endfor %}#}
+{#          </ul>#}
+{#        </div>#}
+{#      </div>#}
     <!-- Добавьте дополнительные ссылки, если необходимо -->
   </div>
   {% csrf_token %}

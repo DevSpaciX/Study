@@ -13,7 +13,7 @@ from course.views import (
     profile,
     # stripe_webhook,
     LearnCourses,
-    Homeworks, success,
+    Homeworks, success, quiz_view, telegram_webhook,
 )
 
 urlpatterns = [
@@ -27,6 +27,9 @@ urlpatterns = [
     path("profile/<slug:slug>/", profile, name="profile"),
     path("learn/<int:pk>/<int:lecture_pk>/", LearnCourses.as_view(), name="learn-page"),
     path("success/", success, name="success"),
+    path("test/<int:pk>/", quiz_view, name="test"),
+    path('telegram/webhook/', telegram_webhook),
+
 ]
 
 if settings.DEBUG:

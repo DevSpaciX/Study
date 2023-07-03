@@ -113,8 +113,7 @@ class Course(models.Model):
     title = models.CharField(max_length=20)
     description = models.TextField(max_length=500)
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
-    price = models.PositiveIntegerField()
-    rating = models.FloatField(default=3)
+    rating = models.FloatField(default=5)
     image = models.ImageField(upload_to="images/")
     level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default=BEGINNER)
 
@@ -136,3 +135,34 @@ class Lecture(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Question(models.Model):
+    question_text = models.CharField(max_length=200)
+    option1 = models.CharField(max_length=200)
+    option2 = models.CharField(max_length=200)
+    option3 = models.CharField(max_length=200)
+    option4 = models.CharField(max_length=200)
+    correct_option = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.question_text
+
+
+class Test(models.Model):
+    title = models.CharField(max_length=200)
+    questions = models.ManyToManyField(Question)
+    lecture = models.ForeignKey("Lecture", on_delete=models.CASCADE, blank=True , null=True)
+
+    def __str__(self):
+        return self.title
+
+
+class Employee(models.Model):
+    email = models.EmailField(null=True)
+    name = models.CharField(max_length=100)
+    work_time = models.CharField(max_length=100)
+    line = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
